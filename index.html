@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevForge Studio | AI Animator</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['Fira Code', 'monospace'] },
+                    colors: { 
+                        primary: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' },
+                        slate: { 850: '#1e293b' } // Custom dark slate
+                    },
+                    animation: { 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite' }
+                }
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <style>
+        body { background-color: #f3f4f6; }
+        /* Smooth fade for elements */
+        .fade-enter { opacity: 0; transform: translateY(10px); }
+        .fade-enter-active { opacity: 1; transform: translateY(0); transition: opacity 300ms, transform 300ms; }
+        
+        /* Custom Scrollbar for code */
+        .code-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+        .code-scroll::-webkit-scrollbar-track { background: #282c34; }
+        .code-scroll::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-gray-800">
+
+    <nav class="bg-white border-b border-gray-200 h-16 flex-shrink-0 z-20 shadow-sm relative">
+        <div class="max-w-[1920px] mx-auto px-6 h-full flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-primary-600 text-white p-2 rounded-lg shadow-lg shadow-primary-500/30">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-tight text-gray-900 leading-none">DevForge <span class="text-primary-600">Animator</span></h1>
+                    <p class="text-[10px] text-gray-400 font-medium tracking-wide uppercase mt-0.5">Educational Video Generator</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="toggleModal('howItWorksModal')" class="text-sm font-medium text-gray-500 hover:text-primary-600 transition-colors">How it Works</button>
+                <div class="h-4 w-[1px] bg-gray-300"></div>
+                <div class="flex items-center gap-2 text-xs font-mono text-gray-400 bg-gray-100 px-3 py-1.5 rounded-full">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> SYSTEM ONLINE
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex-1 flex overflow-hidden">
+        
+        <aside class="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 z-10">
+            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Recent Creations</h2>
+            </div>
+            <div id="historyList" class="flex-1 overflow-y-auto p-2 space-y-1">
+                <div class="text-center p-8 text-gray-400 text-xs italic">
+                    No videos generated yet.<br>Start creating!
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col min-w-0 bg-gray-50 overflow-hidden">
+            <div class="flex-1 overflow-y-auto p-8">
+                <div class="max-w-6xl mx-auto grid grid-cols-1 xl:grid-cols-12 gap-8">
+                    
+                    <div class="xl:col-span-4 space-y-6">
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200/60">
+                            <label class="block text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                Prompt Description
+                            </label>
+                            <textarea 
+                                id="promptInput" 
+                                class="w-full h-40 p-4 rounded-xl bg-gray-50 border border-gray-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all resize-none text-gray-700 text-sm leading-relaxed placeholder:text-gray-400"
+                                placeholder="Example: Show a sine wave graph. Label the amplitude and period. Animate a point moving along the curve."
+                            ></textarea>
+
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                <button onclick="setPrompt('Show a red circle transforming into a blue square. Display the text \'Geometry\' above.')" class="text-[11px] bg-primary-50 text-primary-700 px-3 py-1.5 rounded-full hover:bg-primary-100 font-medium transition-colors border border-primary-100">Geometry</button>
+                                <button onclick="setPrompt('Graph y = x^2 using a white line on a plane. Label the axis.')" class="text-[11px] bg-primary-50 text-primary-700 px-3 py-1.5 rounded-full hover:bg-primary-100 font-medium transition-colors border border-primary-100">Graphing</button>
+                                <button onclick="setPrompt('Show two vectors adding up: Vector A + Vector B = Vector C. Use arrows.')" class="text-[11px] bg-primary-50 text-primary-700 px-3 py-1.5 rounded-full hover:bg-primary-100 font-medium transition-colors border border-primary-100">Physics</button>
+                            </div>
+
+                            <button onclick="handleGenerate()" id="generateBtn" class="mt-6 w-full py-3.5 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white rounded-xl font-bold shadow-lg shadow-primary-500/20 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 group">
+                                <svg class="w-5 h-5 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span>Generate Video</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="xl:col-span-8 flex flex-col gap-6">
+                        
+                        <div class="bg-black rounded-2xl overflow-hidden shadow-xl border border-gray-800 relative aspect-video flex items-center justify-center group">
+                            
+                            <div id="emptyState" class="text-center">
+                                <div class="w-24 h-24 bg-gray-900/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-800 backdrop-blur-sm">
+                                    <svg class="w-10 h-10 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                </div>
+                                <h3 class="text-gray-300 font-semibold text-lg">Ready to Render</h3>
+                                <p class="text-gray-500 text-sm mt-1">AI-generated animations will appear here</p>
+                            </div>
+
+                            <div id="loadingState" class="hidden absolute inset-0 bg-gray-900 z-20 flex flex-col items-center justify-center">
+                                <div class="w-64 bg-gray-800 h-2 rounded-full overflow-hidden mb-4">
+                                    <div id="progressBar" class="h-full bg-primary-500 transition-all duration-300 w-0"></div>
+                                </div>
+                                <p id="progressText" class="text-primary-400 font-mono text-xs uppercase tracking-widest animate-pulse">Initializing...</p>
+                            </div>
+
+                            <video id="videoPlayer" class="hidden w-full h-full bg-black" controls autoplay loop></video>
+                        </div>
+
+                        <div class="flex-1 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col min-h-[400px]">
+                            <div class="flex border-b border-gray-100 bg-gray-50/50 px-4 pt-2 gap-2">
+                                <button onclick="switchTab('logic')" id="tabLogic" class="px-4 py-3 text-xs font-bold text-gray-700 border-b-2 border-primary-500 bg-white rounded-t-lg transition-all">
+                                    ANIMATION STEPS (JSON)
+                                </button>
+                                <button onclick="switchTab('code')" id="tabCode" class="px-4 py-3 text-xs font-bold text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:bg-gray-100 rounded-t-lg transition-all">
+                                    GENERATED CODE (PYTHON)
+                                </button>
+                            </div>
+
+                            <div class="flex-1 relative bg-[#282c34]">
+                                <div id="viewLogic" class="absolute inset-0 p-6 overflow-auto code-scroll">
+                                    <pre id="logicContent" class="text-sm font-mono text-gray-300 whitespace-pre-wrap"></pre>
+                                </div>
+                                <div id="viewCode" class="hidden absolute inset-0 overflow-auto code-scroll">
+                                    <pre><code id="codeContent" class="language-python text-sm h-full"># Code will appear here</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 right-6 transform translate-y-20 opacity-0 transition-all duration-500 z-50">
+        <div id="toastContent" class="bg-gray-900 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 border border-gray-800">
+            <span id="toastIcon"></span>
+            <div class="flex flex-col">
+                <span id="toastTitle" class="font-bold text-sm">Notification</span>
+                <span id="toastMsg" class="text-xs text-gray-400">Message body</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="howItWorksModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div onclick="toggleModal('howItWorksModal')" class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity"></div>
+        <div class="bg-white relative z-10 w-full max-w-xl rounded-2xl shadow-2xl p-8 transform transition-all scale-100">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">System Architecture</h2>
+            <div class="space-y-4">
+                <div class="flex gap-4 items-start">
+                    <div class="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm">1</div>
+                    <div><h4 class="font-bold text-gray-800 text-sm">Input Interpretation</h4><p class="text-xs text-gray-500 mt-1">LLM converts text prompt into a structured JSON scene graph.</p></div>
+                </div>
+                <div class="flex gap-4 items-start">
+                    <div class="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm">2</div>
+                    <div><h4 class="font-bold text-gray-800 text-sm">Code Generation</h4><p class="text-xs text-gray-500 mt-1">System writes a Python script using the Manim animation engine.</p></div>
+                </div>
+                <div class="flex gap-4 items-start">
+                    <div class="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm">3</div>
+                    <div><h4 class="font-bold text-gray-800 text-sm">Rendering Pipeline</h4><p class="text-xs text-gray-500 mt-1">Server renders frames via FFMPEG and streams MP4 to client.</p></div>
+                </div>
+            </div>
+            <button onclick="toggleModal('howItWorksModal')" class="mt-8 w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl text-sm transition-colors">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        const history = [];
+
+        // --- UI Logic ---
+        function setPrompt(text) { document.getElementById('promptInput').value = text; }
+        
+        function toggleModal(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
+
+        function switchTab(tab) {
+            const logic = document.getElementById('viewLogic');
+            const code = document.getElementById('viewCode');
+            const btnLogic = document.getElementById('tabLogic');
+            const btnCode = document.getElementById('tabCode');
+
+            if (tab === 'logic') {
+                logic.classList.remove('hidden'); code.classList.add('hidden');
+                btnLogic.className = "px-4 py-3 text-xs font-bold text-gray-700 border-b-2 border-primary-500 bg-white rounded-t-lg transition-all";
+                btnCode.className = "px-4 py-3 text-xs font-bold text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:bg-gray-100 rounded-t-lg transition-all";
+            } else {
+                logic.classList.add('hidden'); code.classList.remove('hidden');
+                btnLogic.className = "px-4 py-3 text-xs font-bold text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:bg-gray-100 rounded-t-lg transition-all";
+                btnCode.className = "px-4 py-3 text-xs font-bold text-gray-700 border-b-2 border-primary-500 bg-white rounded-t-lg transition-all";
+            }
+        }
+
+        function showToast(title, msg, type='success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            
+            document.getElementById('toastTitle').innerText = title;
+            document.getElementById('toastMsg').innerText = msg;
+            
+            if(type === 'success') {
+                icon.innerHTML = '<svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+            } else {
+                icon.innerHTML = '<svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 4000);
+        }
+
+        function addToHistory(prompt) {
+            const list = document.getElementById('historyList');
+            // Remove empty state if exists
+            if (list.children.length === 1 && list.children[0].tagName === 'DIV') list.innerHTML = '';
+
+            const btn = document.createElement('button');
+            btn.className = "w-full text-left p-3 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors truncate border-b border-gray-100";
+            btn.innerHTML = `<span class="font-bold block text-gray-800 mb-1">Animation #${history.length + 1}</span>${prompt}`;
+            btn.onclick = () => {
+                // Restore logic (simplified for demo - just restores prompt)
+                setPrompt(prompt);
+            };
+            list.prepend(btn);
+            history.push(prompt);
+        }
+
+        // --- Main Generation ---
+        async function handleGenerate() {
+            const prompt = document.getElementById('promptInput').value;
+            if (!prompt.trim()) return;
+
+            // UI Reset
+            const loading = document.getElementById('loadingState');
+            const player = document.getElementById('videoPlayer');
+            const empty = document.getElementById('emptyState');
+            const bar = document.getElementById('progressBar');
+            const pText = document.getElementById('progressText');
+            const btn = document.getElementById('generateBtn');
+
+            empty.classList.add('hidden');
+            player.classList.add('hidden');
+            loading.classList.remove('hidden');
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            // Fake Progress Simulation
+            let progress = 0;
+            const interval = setInterval(() => {
+                if(progress < 90) {
+                    progress += Math.random() * 5;
+                    bar.style.width = `${progress}%`;
+                    if(progress > 20 && progress < 50) pText.innerText = "Analyzing Scene Logic...";
+                    if(progress > 50 && progress < 80) pText.innerText = "Writing Python Code...";
+                    if(progress > 80) pText.innerText = "Rendering Frames (FFmpeg)...";
+                }
+            }, 800);
+
+            try {
+                const response = await fetch('http://localhost:8000/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ description: prompt })
+                });
+
+                if (!response.ok) throw new Error('Render failed');
+                const data = await response.json();
+
+                // Success State
+                clearInterval(interval);
+                bar.style.width = "100%";
+                pText.innerText = "Finalizing...";
+                
+                setTimeout(() => {
+                    loading.classList.add('hidden');
+                    // We add a timestamp (?t=...) to force the browser to reload the video
+player.src = data.videoUrl + "?t=" + new Date().getTime();
+                    player.classList.remove('hidden');
+                    player.play();
+                    
+                    document.getElementById('logicContent').innerText = JSON.stringify(data.sceneLogic, null, 2);
+                    document.getElementById('codeContent').innerText = data.generatedCode;
+                    hljs.highlightAll();
+
+                    addToHistory(prompt);
+                    showToast('Render Complete', 'Your animation is ready to view.');
+                }, 500);
+
+            } catch (err) {
+                clearInterval(interval);
+                loading.classList.add('hidden');
+                empty.classList.remove('hidden');
+                showToast('Generation Failed', 'Check the backend terminal for logs.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+    </script>
+</body>
+</html>
